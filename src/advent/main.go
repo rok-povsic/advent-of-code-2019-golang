@@ -1,6 +1,6 @@
 package main
 
-import . "advent/day1"
+import . "advent/day2"
 
 func main() {
 	Run()
