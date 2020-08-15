@@ -1,4 +1,4 @@
-package day4
+package main
 
 import (
 	"fmt"
@@ -22,9 +22,9 @@ func isValid(num int) bool {
 	str := strconv.Itoa(num)
 	isDuplicated := false
 	for i := 0; i < 5; i++ {
-		cur, err := strconv.Atoi(str[i:i+1])
+		cur, err := strconv.Atoi(str[i : i+1])
 		check(err)
-		next, err := strconv.Atoi(str[i+1:i+2])
+		next, err := strconv.Atoi(str[i+1 : i+2])
 		check(err)
 		if cur > next {
 			return false
@@ -40,4 +40,8 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func main() {
+	Run()
 }
