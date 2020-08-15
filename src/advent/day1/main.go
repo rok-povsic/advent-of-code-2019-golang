@@ -1,4 +1,4 @@
-package day1
+package main
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func Run() {
 }
 
 func readData() []int {
-	dat, err := ioutil.ReadFile("input.txt")
+	dat, err := ioutil.ReadFile("src/advent/day1/input.txt")
 	check(err)
 
 	text := string(dat)
@@ -58,4 +58,8 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func main() {
+	Run()
 }

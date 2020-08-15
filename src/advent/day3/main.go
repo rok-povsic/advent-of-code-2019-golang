@@ -1,4 +1,4 @@
-package day3
+package main
 
 import (
 	"clarifai/utils/ints"
@@ -122,8 +122,8 @@ func intersectionPoint(first line, second line) *point {
 
 func lines(points []point) []line {
 	var lines []line
-	for i := 0; i < len(points) - 1;  i++ {
-		lines = append(lines, line{points[i], points[i + 1]})
+	for i := 0; i < len(points)-1; i++ {
+		lines = append(lines, line{points[i], points[i+1]})
 	}
 	return lines
 }
@@ -139,18 +139,22 @@ func points(path []string) []point {
 		check(err)
 
 		switch direction {
-		case "R": {
-			x += length
-		}
-		case "L": {
-			x -= length
-		}
-		case "U": {
-			y += length
-		}
-		case "D": {
-			y -= length
-		}
+		case "R":
+			{
+				x += length
+			}
+		case "L":
+			{
+				x -= length
+			}
+		case "U":
+			{
+				y += length
+			}
+		case "D":
+			{
+				y -= length
+			}
 		default:
 			panic("Unexpected direction " + direction)
 		}
@@ -168,7 +172,7 @@ func check(e error) {
 
 type line struct {
 	from point
-	to point
+	to   point
 }
 
 func (l line) length() int {
@@ -192,3 +196,6 @@ type point struct {
 	y int
 }
 
+func main() {
+	Run()
+}
