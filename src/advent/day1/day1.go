@@ -1,4 +1,4 @@
-package main
+package day1
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func main() {
+func Run() {
 	masses := readData()
 
 	additionalFuel := 0
