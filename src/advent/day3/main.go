@@ -1,7 +1,6 @@
 package main
 
 import (
-	"clarifai/utils/ints"
 	"fmt"
 	"strconv"
 	"strings"
@@ -28,7 +27,7 @@ func NearestManhattanDistance(text string) int {
 
 	minDistance := 999999999
 	for _, p := range intersectionPoints {
-		distance := ints.Abs(p.x) + ints.Abs(p.y)
+		distance := abs(p.x) + abs(p.y)
 		if distance < minDistance {
 			minDistance = distance
 		}
@@ -91,26 +90,26 @@ func intersectionPoint(first line, second line) *point {
 	}
 
 	if first.isHorizontal() {
-		minX := ints.Min(first.from.x, first.to.x)
-		maxX := ints.Max(first.from.x, first.to.x)
+		minX := min(first.from.x, first.to.x)
+		maxX := max(first.from.x, first.to.x)
 		crossesX := second.from.x
 		crossesHorizontally := minX <= crossesX && crossesX <= maxX
 
-		minY := ints.Min(second.from.y, second.to.y)
-		maxY := ints.Max(second.from.y, second.to.y)
+		minY := min(second.from.y, second.to.y)
+		maxY := max(second.from.y, second.to.y)
 		crossesY := first.from.y
 		crossesVertically := minY <= crossesY && crossesY <= maxY
 		if crossesHorizontally && crossesVertically {
 			return &point{crossesX, crossesY}
 		}
 	} else {
-		minX := ints.Min(second.from.x, second.to.x)
-		maxX := ints.Max(second.from.x, second.to.x)
+		minX := min(second.from.x, second.to.x)
+		maxX := max(second.from.x, second.to.x)
 		crossesX := first.from.x
 		crossesHorizontally := minX <= crossesX && crossesX <= maxX
 
-		minY := ints.Min(first.from.y, first.to.y)
-		maxY := ints.Max(first.from.y, first.to.y)
+		minY := min(first.from.y, first.to.y)
+		maxY := max(first.from.y, first.to.y)
 		crossesY := second.from.y
 		crossesVertically := minY <= crossesY && crossesY <= maxY
 		if crossesHorizontally && crossesVertically {
@@ -177,12 +176,12 @@ type line struct {
 
 func (l line) length() int {
 	if l.isHorizontal() {
-		minX := ints.Min(l.from.x, l.to.x)
-		maxX := ints.Max(l.from.x, l.to.x)
+		minX := min(l.from.x, l.to.x)
+		maxX := max(l.from.x, l.to.x)
 		return maxX - minX
 	} else {
-		minY := ints.Min(l.from.y, l.to.y)
-		maxY := ints.Max(l.from.y, l.to.y)
+		minY := min(l.from.y, l.to.y)
+		maxY := max(l.from.y, l.to.y)
 		return maxY - minY
 	}
 }
@@ -194,6 +193,30 @@ func (l line) isHorizontal() bool {
 type point struct {
 	x int
 	y int
+}
+
+func max(a int, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func min(a int, b int) int {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func abs(a int) int {
+	if a >= 0 {
+		return a
+	} else {
+		return -a
+	}
 }
 
 func main() {
