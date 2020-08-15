@@ -12,10 +12,10 @@ func main() {
 
 	additionalFuel := 0
 	for _, mass := range masses {
-		additionalFuel += requiredFuel(mass)
+		additionalFuel += RequiredFuelWithAdditionalFuel(mass)
 	}
 
-	fmt.Println("(Day 1) Required additional fuel: " + strconv.Itoa(additionalFuel))
+	fmt.Println("(Day 1 - Part 2) Required additional fuel: " + strconv.Itoa(additionalFuel))
 }
 
 func readData() []int {
@@ -38,6 +38,20 @@ func readData() []int {
 func requiredFuel(mass int) int {
 	fuel := mass/3 - 2
 	return fuel
+}
+
+func RequiredFuelWithAdditionalFuel(mass int) int {
+	additionalFuel := requiredFuel(mass)
+	totalFuel := additionalFuel
+	for true {
+		additionalFuel = requiredFuel(additionalFuel)
+		if additionalFuel <= 0 {
+			break
+		}
+		totalFuel += additionalFuel
+	}
+
+	return totalFuel
 }
 
 func check(e error) {
