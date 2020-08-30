@@ -79,7 +79,7 @@ func valuesWithoutOne(positionToIgnore int, values []int) []int {
 	return result
 }
 
-func ComputeThrustWithRecursion(text string, phases []int) int {
+func ComputeThrust(text string, phases []int) int {
 	inputChan1 := make(chan int)
 	inputChan2 := make(chan int)
 	inputChan3 := make(chan int)
@@ -95,7 +95,8 @@ func ComputeThrustWithRecursion(text string, phases []int) int {
 	exitChan4 := make(chan int)
 	finalExitChan := make(chan int)
 
-	isFirstAmplifierDone := false
+	hasFeedbackLoop := phases[0] >= 5
+	isFirstAmplifierDone := !hasFeedbackLoop
 
 	go ComputeWithRecursion(text, inputChan1, inputChan2, exitChan1)
 	go ComputeWithRecursion(text, inputChan2, inputChan3, exitChan2)
@@ -115,7 +116,6 @@ L:
 	for true {
 		select {
 		case finalOutput := <-finalOutputChan:
-			fmt.Println("Received final output: " + strconv.Itoa(finalOutput))
 			if isFirstAmplifierDone {
 				output = finalOutput
 			} else {
@@ -139,18 +139,6 @@ L:
 	return output
 }
 
-func ComputeThrust(text string, phases []int) int {
-	output := 0
-	for amplifier := 0; amplifier < 5; amplifier++ {
-		inputs := []int{phases[amplifier], output}
-		response := Compute(inputs, text)
-		output, _ = strconv.Atoi(strings.Trim(response, "\n"))
-		fmt.Println("Output: " + strconv.Itoa(output))
-	}
-	return output
-}
-
-// TODO: The recursion and non-recursion variant should be combined.
 func ComputeWithRecursion(programCode string, inputChan chan int, outputChan chan int, exitChan chan int) {
 	program := program(programCode)
 
@@ -198,7 +186,6 @@ L:
 			{
 				val := paramValue(modes, program, pc, 1)
 				outputChan <- val
-				fmt.Println("Output: " + strconv.Itoa(val))
 				pc += 2
 			}
 		case 5: // jump-if-true
@@ -251,7 +238,6 @@ L:
 			}
 		case 99: // exit
 			{
-				fmt.Print("EXIT\n\n")
 				exitChan <- 0
 				break L
 			}
@@ -259,122 +245,6 @@ L:
 			panic("Unknown instruction " + strconv.Itoa(instruction))
 		}
 	}
-}
-
-func Compute(inputs []int, programCode string) string {
-	fmt.Printf("Running program with inputs: %d %d\n", inputs[0], inputs[1])
-
-	output := ""
-
-	program := program(programCode)
-
-	curInput := 0
-
-	pc := 0
-L:
-	for true {
-		opcode := strconv.Itoa(program[pc])
-		//fmt.Printf("pc: %d, opcode: %s\n", pc, opcode)
-		instruction, err := strconv.Atoi(opcode[max(0, len(opcode)-2):])
-		check(err)
-
-		modes := opcode[:max(0, len(opcode)-2)]
-
-		switch instruction {
-		case 1: // sum
-			{
-				a := paramValue(modes, program, pc, 1)
-				b := paramValue(modes, program, pc, 2)
-
-				cAddr := program[pc+3]
-				c := a + b
-				program[cAddr] = c
-				pc += 4
-			}
-		case 2: // multiply
-			{
-				a := paramValue(modes, program, pc, 1)
-				b := paramValue(modes, program, pc, 2)
-
-				cAddr := program[pc+3]
-				c := a * b
-				program[cAddr] = c
-				pc += 4
-			}
-		case 3: // input
-			{
-				addr := program[pc+1]
-				program[addr] = inputs[curInput]
-				curInput++
-				pc += 2
-			}
-		case 4: // output
-			{
-				val := paramValue(modes, program, pc, 1)
-				text := strconv.Itoa(val)
-				fmt.Println("Output: " + text)
-				output += text + "\n"
-				pc += 2
-			}
-		case 5: // jump-if-true
-			{
-				condition := paramValue(modes, program, pc, 1)
-				jumpAddr := paramValue(modes, program, pc, 2)
-				if condition != 0 {
-					pc = jumpAddr
-				} else {
-					pc += 3
-				}
-			}
-		case 6: // jump-if-false
-			{
-				condition := paramValue(modes, program, pc, 1)
-				jumpAddr := paramValue(modes, program, pc, 2)
-				if condition == 0 {
-					pc = jumpAddr
-				} else {
-					pc += 3
-				}
-			}
-		case 7: // less than
-			{
-				a := paramValue(modes, program, pc, 1)
-				b := paramValue(modes, program, pc, 2)
-				var result int
-				if a < b {
-					result = 1
-				} else {
-					result = 0
-				}
-				resultAddrAddr := program[pc+3]
-				program[resultAddrAddr] = result
-				pc += 4
-			}
-		case 8: // equals
-			{
-				a := paramValue(modes, program, pc, 1)
-				b := paramValue(modes, program, pc, 2)
-				var result int
-				if a == b {
-					result = 1
-				} else {
-					result = 0
-				}
-				resultAddrAddr := program[pc+3]
-				program[resultAddrAddr] = result
-				pc += 4
-			}
-		case 99: // exit
-			{
-				fmt.Print("EXIT\n\n")
-				break L
-			}
-		default:
-			panic("Unknown instruction " + strconv.Itoa(instruction))
-		}
-	}
-
-	return output
 }
 
 func paramValue(modes string, program []int, pc int, pos int) int {
