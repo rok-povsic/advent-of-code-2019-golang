@@ -12,8 +12,22 @@ import (
 func Run() {
 	programCode := loadProgramCode()
 
+	// Part 1
+	//values := []int{0, 1, 2, 3, 4}
+
+	// Part 2
+	values := []int{5, 6, 7, 8, 9}
+
 	highestThrust := 0
-	for _, phases := range generatedAllPhases() {
+	for _, phases := range generatedAllPhases(values) {
+		fmt.Println(
+			"Running phase " +
+				strconv.Itoa(phases[0]) + ", " +
+				strconv.Itoa(phases[1]) + ", " +
+				strconv.Itoa(phases[2]) + ", " +
+				strconv.Itoa(phases[3]) + ", " +
+				strconv.Itoa(phases[4]))
+
 		currentThrust := ComputeThrust(programCode, phases)
 		if highestThrust < currentThrust {
 			highestThrust = currentThrust
@@ -28,10 +42,9 @@ func loadProgramCode() string {
 	return string(data)
 }
 
-func generatedAllPhases() [][]int {
+func generatedAllPhases(values []int) [][]int {
 	all := make([][]int, 0)
 
-	values := []int{0, 1, 2, 3, 4}
 	for _, value := range permutations(values) {
 		// Probably there's a better way of doing this..
 		num1, _ := strconv.Atoi(string(value[0]))
@@ -79,76 +92,64 @@ func valuesWithoutOne(positionToIgnore int, values []int) []int {
 	return result
 }
 
-func ComputeThrust(text string, phases []int) int {
-	inputChan1 := make(chan int)
-	inputChan2 := make(chan int)
-	inputChan3 := make(chan int)
-	inputChan4 := make(chan int)
-	inputChan5 := make(chan int)
-
-	finalOutputChan := make(chan int)
-
-	// TODO
-	exitChan1 := make(chan int)
-	exitChan2 := make(chan int)
-	exitChan3 := make(chan int)
-	exitChan4 := make(chan int)
-	finalExitChan := make(chan int)
-
+func ComputeThrust(programCode string, phases []int) int {
 	hasFeedbackLoop := phases[0] >= 5
-	isFirstAmplifierDone := !hasFeedbackLoop
 
-	go ComputeWithRecursion(text, inputChan1, inputChan2, exitChan1)
-	go ComputeWithRecursion(text, inputChan2, inputChan3, exitChan2)
-	go ComputeWithRecursion(text, inputChan3, inputChan4, exitChan3)
-	go ComputeWithRecursion(text, inputChan4, inputChan5, exitChan4)
-	go ComputeWithRecursion(text, inputChan5, finalOutputChan, finalExitChan)
+	program1 := program(programCode)
+	computationStopped1 := ComputeWithRecursion(program1, -1, 0)
+	computationStopped1 = ComputeWithRecursion(program1, phases[0], computationStopped1.pc)
+	computationStopped1 = ComputeWithRecursion(program1, 0, computationStopped1.pc)
 
-	inputChan1 <- phases[0]
-	inputChan2 <- phases[1]
-	inputChan3 <- phases[2]
-	inputChan4 <- phases[3]
-	inputChan5 <- phases[4]
-	inputChan1 <- 0
+	program2 := program(programCode)
+	computationStopped2 := ComputeWithRecursion(program2, -1, 0)
+	computationStopped2 = ComputeWithRecursion(program2, phases[1], computationStopped2.pc)
+	computationStopped2 = ComputeWithRecursion(program2, computationStopped1.output, computationStopped2.pc)
 
-	output := -1
-L:
-	for true {
-		select {
-		case finalOutput := <-finalOutputChan:
-			if isFirstAmplifierDone {
-				output = finalOutput
-			} else {
-				inputChan1 <- finalOutput
-			}
-			break
-		case <-exitChan1:
-			isFirstAmplifierDone = true
-			break
-		case <-exitChan2:
-			break
-		case <-exitChan3:
-			break
-		case <-exitChan4:
-			break
-		case <-finalExitChan:
-			break L
-		}
+	program3 := program(programCode)
+	computationStopped3 := ComputeWithRecursion(program3, -1, 0)
+	computationStopped3 = ComputeWithRecursion(program3, phases[2], computationStopped3.pc)
+	computationStopped3 = ComputeWithRecursion(program3, computationStopped2.output, computationStopped3.pc)
+
+	program4 := program(programCode)
+	computationStopped4 := ComputeWithRecursion(program4, -1, 0)
+	computationStopped4 = ComputeWithRecursion(program4, phases[3], computationStopped4.pc)
+	computationStopped4 = ComputeWithRecursion(program4, computationStopped3.output, computationStopped4.pc)
+
+	program5 := program(programCode)
+	computationStopped5 := ComputeWithRecursion(program5, -1, 0)
+	computationStopped5 = ComputeWithRecursion(program5, phases[4], computationStopped5.pc)
+	computationStopped5 = ComputeWithRecursion(program5, computationStopped4.output, computationStopped5.pc)
+
+	if !hasFeedbackLoop {
+		return computationStopped5.output
 	}
 
-	return output
+	for true {
+		if computationStopped1.mode == "EXITED" {
+			return computationStopped5.output
+		}
+
+		computationStopped1 = ComputeWithRecursion(program1, computationStopped5.output, computationStopped1.pc)
+		computationStopped2 = ComputeWithRecursion(program2, computationStopped1.output, computationStopped2.pc)
+		computationStopped3 = ComputeWithRecursion(program3, computationStopped2.output, computationStopped3.pc)
+		computationStopped4 = ComputeWithRecursion(program4, computationStopped3.output, computationStopped4.pc)
+		computationStopped5 = ComputeWithRecursion(program5, computationStopped4.output, computationStopped5.pc)
+	}
+
+	return -1
 }
 
-func ComputeWithRecursion(programCode string, inputChan chan int, outputChan chan int, exitChan chan int) {
-	program := program(programCode)
+type ComputationStopped struct {
+	mode   string // Values: "EXITED", "WAITING_FOR_INPUT"
+	output int    // -1 if no output
+	pc     int
+}
 
-	curInput := 0
+func ComputeWithRecursion(program []int, input int, pc int) ComputationStopped {
+	output := -1
 
-	pc := 0
-L:
 	for true {
 		opcode := strconv.Itoa(program[pc])
-		//fmt.Printf("pc: %d, opcode: %s\n", pc, opcode)
 		instruction, err := strconv.Atoi(opcode[max(0, len(opcode)-2):])
 		check(err)
 
@@ -177,15 +178,20 @@ L:
 			}
 		case 3: // input
 			{
+				if input == -1 {
+					return ComputationStopped{"WAITING_FOR_INPUT", output, pc}
+				}
+
 				addr := program[pc+1]
-				program[addr] = <-inputChan
-				curInput++
+				program[addr] = input
 				pc += 2
+
+				input = -1
 			}
 		case 4: // output
 			{
 				val := paramValue(modes, program, pc, 1)
-				outputChan <- val
+				output = val
 				pc += 2
 			}
 		case 5: // jump-if-true
@@ -238,13 +244,14 @@ L:
 			}
 		case 99: // exit
 			{
-				exitChan <- 0
-				break L
+				return ComputationStopped{"EXITED", output, pc}
 			}
 		default:
 			panic("Unknown instruction " + strconv.Itoa(instruction))
 		}
 	}
+
+	return ComputationStopped{"INVALID", -1, -1}
 }
 
 func paramValue(modes string, program []int, pc int, pos int) int {
