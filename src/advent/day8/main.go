@@ -45,7 +45,7 @@ func Draw(text string, wide int, tall int) {
 			fmt.Print(drawing[i])
 		}
 
-		if i != 0 && (i + 1) % wide == 0 {
+		if i != 0 && (i+1)%wide == 0 {
 			fmt.Println()
 		}
 	}
