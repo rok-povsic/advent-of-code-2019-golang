@@ -11,7 +11,9 @@ func Run() {
 	data, err := ioutil.ReadFile("src/advent/day9/input.txt")
 	check(err)
 	text := string(data)
-	fmt.Println(Compute(1, text))
+	//input := 1  // Part 1
+	input := 2  // Part 2
+	fmt.Println(Compute(input, text))
 }
 
 func Compute(input int, text string) string {
