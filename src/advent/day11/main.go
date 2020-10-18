@@ -27,13 +27,15 @@ func main() {
 
 	// Current coordinates.
 	currentCoordinates := Coordinates{0, 0}
-	colors := make(map[Coordinates]int) // coordinate to color (0 is black, 1 is white)
+	grid := make(map[Coordinates]int) // coordinate to color (0 is black, 1 is white)
+	grid[currentCoordinates] = 1
 
 	for true {
 		fmt.Printf("Current coordinates: x=%d, y=%d\n", currentCoordinates.x, currentCoordinates.y)
-		fmt.Printf("# of painted grids so far: %d\n", len(colors))
+		fmt.Printf("# of painted grids so far: %d\n", len(grid))
+		draw(grid)
 
-		curColor, exists := colors[currentCoordinates]
+		curColor, exists := grid[currentCoordinates]
 		if !exists {
 			curColor = 0
 		}
@@ -43,7 +45,7 @@ func main() {
 		fmt.Printf("newColor: %d\n", newColor)
 		fmt.Printf("rotation: %d\n", rotation)
 
-		colors[currentCoordinates] = newColor
+		grid[currentCoordinates] = newColor
 
 		if rotation == 0 { // Turn left
 			if dY == 1 {
@@ -76,5 +78,40 @@ func main() {
 		}
 
 		currentCoordinates = Coordinates{currentCoordinates.x + dX, currentCoordinates.y + dY}
+	}
+}
+
+func draw(grid map[Coordinates]int) {
+	minX := 99999999
+	maxX := -99999999
+	minY := 99999999
+	maxY := -99999999
+	for c := range grid {
+		if c.x < minX {
+			minX = c.x
+		}
+		if maxX < c.x {
+			maxX = c.x
+		}
+		if c.y < minY {
+			minY = c.y
+		}
+		if maxY < c.y {
+			maxY = c.y
+		}
+	}
+	fmt.Printf("Drawing x from %d to %d, y from %d to %d\n", minX, maxX, minY, maxY)
+	for row := maxY; row >= minY; row-- {
+		for col := minX; col <= maxX; col++ {
+			c := Coordinates{col, row}
+			//fmt.Println(c)
+			color, exists := grid[c]
+			if !exists || color == 0 {
+				fmt.Print(" ")
+			} else {
+				fmt.Print("#")
+			}
+		}
+		fmt.Println()
 	}
 }
