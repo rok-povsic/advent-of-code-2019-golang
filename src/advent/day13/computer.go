@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func Compute(programCode string, inputChan chan int, outputChan chan int, finishedChan chan bool) {
+func Compute(programCode string, actionChan chan string, inputChan chan int, outputChan chan int, finishedChan chan bool) {
 	fmt.Println("Running program")
 
 	program := program(programCode)
@@ -45,9 +45,8 @@ L:
 			}
 		case 3: // input
 			{
-				fmt.Println("Waiting for input")
+				actionChan <- "NEED_INPUT"
 				input := <-inputChan
-				fmt.Printf("Got input: %d\n", input)
 
 				addr := paramAddr(modes, program, pc, 1, relativeBase)
 				program = writeDataToProgram(program, addr, input)
@@ -55,8 +54,8 @@ L:
 			}
 		case 4: // output
 			{
+				actionChan <- "WILL_OUTPUT"
 				val := paramValue(modes, program, pc, 1, relativeBase)
-				fmt.Printf("Output: %d\n", val)
 				outputChan <- val
 				pc += 2
 			}
@@ -117,6 +116,7 @@ L:
 		case 99: // exit
 			{
 				fmt.Print("EXIT\n\n")
+				actionChan <- "DONE"
 				break L
 			}
 		default:
